@@ -353,7 +353,10 @@ projects.forEach((p) => fs.writeFileSync(path.join(OUT, 'projects', p.id + '.htm
 fs.mkdirSync(path.join(OUT, 'css'), { recursive: true });
 fs.copyFileSync(path.join(ROOT, 'css/portfolio.css'), path.join(OUT, 'css/portfolio.css'));
 fs.writeFileSync(path.join(OUT, '.nojekyll'), '');
-fs.writeFileSync(path.join(OUT, 'robots.txt'), 'User-agent: *\nAllow: /\nDisallow: /one-page.html\n\nSitemap: ' + CFG.siteUrl + 'sitemap.xml\n');
+// This is the domain's robots.txt, so it also covers the services site (mainSiteUrl) and lists its sitemap
+const mainPath = CFG.mainSiteUrl && CFG.mainSiteUrl.startsWith(CFG.siteUrl) ? '/' + CFG.mainSiteUrl.slice(CFG.siteUrl.length) : '';
+fs.writeFileSync(path.join(OUT, 'robots.txt'), 'User-agent: *\nAllow: /\nDisallow: /one-page.html\n' + (mainPath ? 'Disallow: ' + mainPath + 'share/\n' : '') +
+    '\nSitemap: ' + CFG.siteUrl + 'sitemap.xml\n' + (mainPath ? 'Sitemap: ' + CFG.mainSiteUrl + 'sitemap.xml\n' : ''));
 const today = new Date().toISOString().slice(0, 10);
 fs.writeFileSync(path.join(OUT, 'sitemap.xml'), '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
     [''].concat(projects.map((p) => 'projects/' + p.id + '.html')).map((u) => '    <url><loc>' + CFG.siteUrl + u + '</loc><lastmod>' + today + '</lastmod></url>').join('\n') + '\n</urlset>\n');
