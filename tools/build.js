@@ -94,7 +94,7 @@ if (i18nReady) {
 }
 ['fonts/plus-jakarta-sans-latin.woff2', 'fonts/fraunces-latin.woff2', 'favicon.svg', 'favicon.ico'].forEach(use);
 
-function page({ title, description, body, depth = 0, extraHead = '' }) {
+function page({ title, description, body, depth = 0, extraHead = '', url = '', jsonld = null }) {
     const up = depth ? '../'.repeat(depth) : '';
     return `<!DOCTYPE html>
 <html lang="en">
@@ -103,10 +103,14 @@ function page({ title, description, body, depth = 0, extraHead = '' }) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${esc(title)}</title>
     <meta name="description" content="${esc(description)}">
+    ${url ? `<link rel="canonical" href="${esc(url)}">\n    <meta property="og:url" content="${esc(url)}">` : ''}
+    <meta property="og:type" content="${depth ? 'article' : 'profile'}">
     <meta property="og:title" content="${esc(title)}">
     <meta property="og:description" content="${esc(description)}">
     ${photo ? `<meta property="og:image" content="${esc(CFG.siteUrl + photo)}">` : ''}
+    <meta name="twitter:card" content="summary">
     <link rel="icon" href="${up}favicon.svg" type="image/svg+xml">
+    ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(/</g, '\\u003c')}</script>` : ''}
     <link rel="stylesheet" href="${up}css/portfolio.css">
     ${extraHead}
     ${i18nReady ? `<script defer src="${up}js/i18n.js" data-fr="${up}js/lang-fr.js" data-sw="${up}js/lang-sw.js"></script>` : ''}
@@ -148,7 +152,19 @@ const card = (p) => {
 /* ---------- Home ---------- */
 const intro = CFG.intro || CV.summary;
 const ONE_PAGE_PDF = 'edison-ochieng-one-page-portfolio.pdf';   // made from one-page.html by tools/build-pdf.js
+const personLd = {
+    '@context': 'https://schema.org', '@type': 'Person', name, jobTitle: headline, url: CFG.siteUrl, description: intro,
+    ...(photo ? { image: CFG.siteUrl + photo } : {}),
+    ...(C.email ? { email: 'mailto:' + C.email } : {}),
+    address: { '@type': 'PostalAddress', addressLocality: String(CV.location || '').split(',')[0].trim(), addressCountry: 'KE' },
+    alumniOf: (CV.education || []).slice(0, 1).map((e) => ({ '@type': 'CollegeOrUniversity', name: e.org })),
+    knowsAbout: (CV.skills || []).map((x) => String(x).split(':')[0].trim()),
+    knowsLanguage: (CV.languages || []).map((x) => String(x).split('(')[0].trim()),
+    sameAs: [CV.linkedin, CFG.mainSiteUrl].filter(Boolean),
+    hasCredential: certificates.map((c) => ({ '@type': 'EducationalOccupationalCredential', name: c.title, ...(c.issuer ? { recognizedBy: { '@type': 'Organization', name: c.issuer } } : {}) }))
+};
 const home = page({
+    url: CFG.siteUrl, jsonld: personLd,
     title: name + ' | ' + headline,
     description: intro.slice(0, 160),
     body: `
@@ -219,6 +235,10 @@ function projectPage(p) {
     const s = p.story || {};
     return page({
         depth: 1,
+        url: CFG.siteUrl + 'projects/' + p.id + '.html',
+        jsonld: { '@context': 'https://schema.org', '@type': 'CreativeWork', name: p.title, description: p.summary, url: CFG.siteUrl + 'projects/' + p.id + '.html',
+            ...(p.cover && has(p.cover) ? { image: CFG.siteUrl + (use(small(p.cover)) || use(p.cover)) } : {}), ...(p.year ? { dateCreated: String(p.year) } : {}),
+            keywords: (p.tags || []).join(', '), creator: { '@type': 'Person', name, url: CFG.siteUrl } },
         title: p.title + ' | ' + name,
         description: p.summary,
         extraHead: model ? `<script type="module" src="${esc((W.SITE_CONFIG && W.SITE_CONFIG.modelViewerSrc) || 'https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js')}"></script>` : '',
@@ -333,7 +353,10 @@ projects.forEach((p) => fs.writeFileSync(path.join(OUT, 'projects', p.id + '.htm
 fs.mkdirSync(path.join(OUT, 'css'), { recursive: true });
 fs.copyFileSync(path.join(ROOT, 'css/portfolio.css'), path.join(OUT, 'css/portfolio.css'));
 fs.writeFileSync(path.join(OUT, '.nojekyll'), '');
-fs.writeFileSync(path.join(OUT, 'robots.txt'), 'User-agent: *\nAllow: /\n');
+fs.writeFileSync(path.join(OUT, 'robots.txt'), 'User-agent: *\nAllow: /\nDisallow: /one-page.html\n\nSitemap: ' + CFG.siteUrl + 'sitemap.xml\n');
+const today = new Date().toISOString().slice(0, 10);
+fs.writeFileSync(path.join(OUT, 'sitemap.xml'), '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+    [''].concat(projects.map((p) => 'projects/' + p.id + '.html')).map((u) => '    <url><loc>' + CFG.siteUrl + u + '</loc><lastmod>' + today + '</lastmod></url>').join('\n') + '\n</urlset>\n');
 
 const left = (W.PROJECTS || []).length - projects.length;
 console.log(`Built site/: ${engineering.length} engineering + ${graphic.length} graphic project(s)` +
