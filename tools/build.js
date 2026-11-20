@@ -354,6 +354,8 @@ projects.forEach((p) => fs.writeFileSync(path.join(OUT, 'projects', p.id + '.htm
 fs.mkdirSync(path.join(OUT, 'css'), { recursive: true });
 fs.copyFileSync(path.join(ROOT, 'css/portfolio.css'), path.join(OUT, 'css/portfolio.css'));
 fs.writeFileSync(path.join(OUT, '.nojekyll'), '');
+// Files that must sit at the site's root as they are (e.g. Google Search Console's verification file)
+if (fs.existsSync(path.join(ROOT, 'static'))) fs.readdirSync(path.join(ROOT, 'static')).forEach((f) => fs.copyFileSync(path.join(ROOT, 'static', f), path.join(OUT, f)));
 // This is the domain's robots.txt, so it also covers the services site (mainSiteUrl) and lists its sitemap
 const mainPath = CFG.mainSiteUrl && CFG.mainSiteUrl.startsWith(CFG.siteUrl) ? '/' + CFG.mainSiteUrl.slice(CFG.siteUrl.length) : '';
 fs.writeFileSync(path.join(OUT, 'robots.txt'), 'User-agent: *\nAllow: /\nDisallow: /one-page.html\n' + (mainPath ? 'Disallow: ' + mainPath + 'share/\n' : '') +
