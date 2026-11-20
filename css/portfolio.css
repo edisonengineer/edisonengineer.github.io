@@ -75,3 +75,6 @@ img { max-width: 100%; display: block; }
     .top, .actions, .foot, model-viewer { display: none !important; }
     .card { break-inside: avoid; }
 }
+.langs { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.langs button { background: none; border: 0; padding: .35rem .55rem; font: inherit; font-size: .8rem; color: var(--muted); cursor: pointer; }
+.langs button[aria-pressed="true"] { background: var(--ink); color: #fff; }

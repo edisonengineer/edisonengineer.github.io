@@ -27,6 +27,20 @@ Google Sheet ──(every 30 min)──▶ MY-PAST-PROJECTS ──(hourly)──
 The sheet's **Articles, Pricing, Courses, Recordings, FAQ, Settings** tabs feed
 the main site only, so this portfolio ignores them.
 
+## Languages (English / Français / Kiswahili)
+
+The EN / FR / SW buttons use the main site's dictionaries:
+
+1. **Hand-written** translations in the main repo (`js/i18n-fr.js`, `js/i18n-sw.js`).
+2. **Automatic** translations from the sheet's **Translations** tab (`js/i18n-sheet-*.js`).
+   These cover everything published from the sheet, plus your CV, projects
+   and blog posts. To correct one, type over it in the Translations tab.
+3. **This site's own labels** (headings, buttons) in `i18n-portfolio.json`.
+   These win over the other two.
+
+Text with no translation yet stays in English until the sheet's hourly job
+reaches it.
+
 ## portfolio.config.json
 
 - `headline`: the line under your name (e.g. "Mechanical Design Engineer").

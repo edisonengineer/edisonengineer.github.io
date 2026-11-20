@@ -39,6 +39,8 @@ function use(rel) {                       // copy a file from the main repo into
     return rel;
 }
 const small = (rel) => { const s = String(rel || '').replace(/(\.\w+)$/, '-800$1'); return has(s) ? s : rel; };
+const LANGS = [['en', 'EN', 'English'], ['fr', 'FR', 'Français'], ['sw', 'SW', 'Kiswahili']];
+const parts = (...xs) => xs.filter(Boolean).map((x) => `<span>${esc(x)}</span>`).join(' · ');
 const link = (href) => /^(https?:|mailto:|tel:)/.test(href) ? href : CFG.mainSiteUrl + href;   // main-site pages stay on the main site
 
 /* ---------- Data from the main repo ---------- */
@@ -76,6 +78,20 @@ const contacts = [
     C.linkedin && CV.linkedin && ['LinkedIn', CV.linkedin, 'linkedin.com/in/' + CV.linkedin.replace(/\/$/, '').split('/').pop()],
     C.whatsapp && W.SITE_CONFIG && W.SITE_CONFIG.whatsapp && ['WhatsApp', 'https://wa.me/' + W.SITE_CONFIG.whatsapp, '+' + W.SITE_CONFIG.whatsapp]
 ].filter(Boolean);
+/* ---------- Languages: the main site's dictionaries (hand-written + automatic sheet translations) + this site's own labels ---------- */
+const i18nReady = has('js/i18n.js') && has('js/i18n-fr.js') && has('js/i18n-sw.js');
+if (i18nReady) {
+    use('js/i18n.js');
+    const OWN = JSON.parse(fs.readFileSync(path.join(ROOT, 'i18n-portfolio.json'), 'utf8'));
+    for (const l of ['fr', 'sw']) {
+        const U = l.toUpperCase();
+        const read = (f) => (has(f) ? fs.readFileSync(path.join(SRC, f), 'utf8') : '');
+        fs.mkdirSync(path.join(OUT, 'js'), { recursive: true });
+        // Order of precedence: this site's labels, then the hand-written dictionary, then the sheet's automatic translations
+        fs.writeFileSync(path.join(OUT, 'js/lang-' + l + '.js'), read('js/i18n-sheet-' + l + '.js') + '\n' + read('js/i18n-' + l + '.js') + '\n' +
+            'window.I18N_' + U + ' = Object.assign({}, window.I18N_' + U + '_SHEET || {}, window.I18N_' + U + ' || {}, ' + JSON.stringify(OWN[l] || {}) + ');\n');
+    }
+}
 ['fonts/plus-jakarta-sans-latin.woff2', 'fonts/fraunces-latin.woff2', 'favicon.svg', 'favicon.ico'].forEach(use);
 
 function page({ title, description, body, depth = 0, extraHead = '' }) {
@@ -93,20 +109,22 @@ function page({ title, description, body, depth = 0, extraHead = '' }) {
     <link rel="icon" href="${up}favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="${up}css/portfolio.css">
     ${extraHead}
+    ${i18nReady ? `<script defer src="${up}js/i18n.js" data-fr="${up}js/lang-fr.js" data-sw="${up}js/lang-sw.js"></script>` : ''}
 </head>
 <body>
     <header class="top"><div class="wrap">
-        <a class="brand" href="${up}index.html">${esc(name)}</a>
+        <a class="brand" href="${up}index.html" data-no-i18n>${esc(name)}</a>
         <nav aria-label="Primary">
             <a href="${up}index.html#projects">Projects</a>
             <a href="${up}index.html#experience">Experience</a>
             <a href="${up}index.html#certificates">Certificates</a>
             ${cvPdf ? `<a class="btn small" href="${up}${cvPdf}" download>Download CV</a>` : ''}
+            ${i18nReady ? `<span class="langs" role="group" aria-label="Language">${LANGS.map(([l, short, full]) => `<button type="button" data-lang="${l}" aria-pressed="${l === 'en'}" aria-label="${full}" data-no-i18n>${short}</button>`).join('')}</span>` : ''}
         </nav>
     </div></header>
     <main>${body}</main>
     <footer class="foot"><div class="wrap">
-        <span>© ${new Date().getFullYear()} ${esc(name)}</span>
+        <span>© ${new Date().getFullYear()} <span data-no-i18n>${esc(name)}</span></span>
         ${CFG.linkToMainSite ? `<a href="${esc(CFG.mainSiteUrl)}">Freelance studio site</a>` : ''}
     </div></footer>
 </body>
@@ -119,7 +137,7 @@ const card = (p) => {
     return `<a class="card" href="projects/${esc(p.id)}.html">
                 <div class="card-img theme-${esc(p.theme || 'blue')}">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : ''}</div>
                 <div class="card-body">
-                    <span class="eyebrow">${esc([p.year, p.subtitle].filter(Boolean).join(' · '))}</span>
+                    <span class="eyebrow">${parts(p.year, p.subtitle)}</span>
                     <h3>${esc(p.title)}</h3>
                     <p>${esc(p.summary)}</p>
                     <ul class="tags">${(p.tags || []).slice(0, 4).map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
@@ -159,7 +177,7 @@ const home = page({
             <h2>Experience</h2>
             ${CV.experience.map((e) => `<article class="item">
                 <h3>${esc(e.role)}</h3>
-                <p class="meta">${esc(e.org)} · ${esc(e.dates)}</p>
+                <p class="meta">${parts(e.org, e.dates)}</p>
                 ${e.points.length ? `<ul>${e.points.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
             </article>`).join('')}
         </div>
@@ -167,12 +185,12 @@ const home = page({
             <h2>Education</h2>
             ${CV.education.map((e) => `<article class="item">
                 <h3>${esc(e.title)}</h3>
-                <p class="meta">${esc(e.org)} · ${esc(e.dates)}</p>
+                <p class="meta">${parts(e.org, e.dates)}</p>
                 ${e.note ? `<p>${esc(e.note)}</p>` : ''}
             </article>`).join('')}
             <h2>Skills</h2>
             <ul class="skills">${CV.skills.map((s) => `<li>${esc(s)}</li>`).join('')}</ul>
-            ${CV.languages ? `<h2>Languages</h2><p>${CV.languages.map(esc).join(' · ')}</p>` : ''}
+            ${CV.languages ? `<h2>Languages</h2><p>${parts(...CV.languages)}</p>` : ''}
         </div>
     </div></section>
 
@@ -205,7 +223,7 @@ function projectPage(p) {
         body: `
     <article class="section"><div class="wrap narrow">
         <a class="back" href="../index.html#projects">← All projects</a>
-        <p class="eyebrow">${esc([p.year, p.subtitle].filter(Boolean).join(' · '))}</p>
+        <p class="eyebrow">${parts(p.year, p.subtitle)}</p>
         <h1>${esc(p.title)}</h1>
         <p class="lead">${esc(p.summary)}</p>
         ${(p.meta || []).length ? `<dl class="facts">${p.meta.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}

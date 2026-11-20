@@ -1,0 +1,32 @@
+{
+  "_help": "Translations of this portfolio's own labels (headings and buttons). Your content (projects, CV, certificates) is translated automatically through the Google Sheet's Translations tab. These win over everything else.",
+  "fr": {
+    "Projects": "Projets",
+    "Contact me": "Me contacter",
+    "Engineering projects": "Projets d'ingénierie",
+    "Graphic design": "Design graphique",
+    "Skills": "Compétences",
+    "Certificates & honours": "Certificats et distinctions",
+    "Phone": "Téléphone",
+    "← All projects": "← Tous les projets",
+    "Read the report (PDF)": "Lire le rapport (PDF)",
+    "View": "Voir",
+    "Read more": "En savoir plus",
+    "Freelance studio site": "Site du studio",
+    "Experience": "Expérience"
+  },
+  "sw": {
+    "Projects": "Miradi",
+    "Contact me": "Wasiliana nami",
+    "Engineering projects": "Miradi ya uhandisi",
+    "Graphic design": "Usanifu wa michoro",
+    "Skills": "Ujuzi",
+    "Certificates & honours": "Vyeti na tuzo",
+    "Phone": "Simu",
+    "← All projects": "← Miradi yote",
+    "Read the report (PDF)": "Soma ripoti (PDF)",
+    "View": "Tazama",
+    "Read more": "Soma zaidi",
+    "Freelance studio site": "Tovuti ya studio"
+  }
+}

@@ -8,7 +8,7 @@ BRANCH=$(node -p "require('./portfolio.config.json').sourceBranch || 'main'")
 rm -rf _source
 git clone --quiet --depth 1 --branch "$BRANCH" --filter=blob:none --sparse "https://github.com/$REPO.git" _source
 git -C _source sparse-checkout set --no-cone \
-  /content/cv.js /js/projects.js /js/sheet-works.js /js/certificates.js /js/sheet-data.js /js/config.js \
+  /content/cv.js /js/i18n.js '/js/i18n-*.js' /js/projects.js /js/sheet-works.js /js/certificates.js /js/sheet-data.js /js/config.js \
   '/images/engineering/' '/images/graphic/' '/images/works/' '/images/certificates/' '/images/profile/' \
   '/models/' '/pdfs/edison-ochieng-cv.pdf' '/pdfs/*report*.pdf' '/fonts/' /favicon.svg /favicon.ico
 echo "Pulled $(git -C _source rev-parse --short HEAD) from $REPO"
