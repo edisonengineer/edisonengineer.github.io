@@ -33,6 +33,21 @@ jobs:
         run: bash tools/pull-content.sh
       - name: Build
         run: node tools/build.js
+      - name: Cache the PDF browser
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-1.56.1
+      - name: Make the one-page PDF
+        run: |
+          npm install -g playwright@1.56.1
+          npx -y playwright@1.56.1 install --with-deps chromium
+          node tools/build-pdf.js || echo "::warning::The one-page PDF could not be made this time; the site is published without its download button."
+      - name: Hide the PDF button if the PDF wasn't made
+        run: |
+          [ -f site/edison-ochieng-one-page-portfolio.pdf ] || node -e "
+            const f = 'site/index.html', fs = require('fs');
+            fs.writeFileSync(f, fs.readFileSync(f, 'utf8').replace(/<a [^>]*href=\"edison-ochieng-one-page-portfolio\.pdf\"[^>]*>[^<]*<\/a>/, ''));"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site

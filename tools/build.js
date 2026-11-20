@@ -147,6 +147,7 @@ const card = (p) => {
 
 /* ---------- Home ---------- */
 const intro = CFG.intro || CV.summary;
+const ONE_PAGE_PDF = 'edison-ochieng-one-page-portfolio.pdf';   // made from one-page.html by tools/build-pdf.js
 const home = page({
     title: name + ' | ' + headline,
     description: intro.slice(0, 160),
@@ -159,6 +160,7 @@ const home = page({
             <p>${esc(intro)}</p>
             <div class="actions">
                 ${cvPdf ? `<a class="btn" href="${cvPdf}" download>Download CV (PDF)</a>` : ''}
+                <a class="btn ghost" href="${ONE_PAGE_PDF}" download>One-page portfolio (PDF)</a>
                 <a class="btn ghost" href="#contact">Contact me</a>
             </div>
         </div>
@@ -244,6 +246,89 @@ function projectPage(p) {
 
 /* ---------- Write ---------- */
 fs.writeFileSync(path.join(OUT, 'index.html'), home);
+
+/* ---------- One-page portfolio (A4) for job applications: tools/build-pdf.js turns it into a PDF ---------- */
+function onePage() {
+    const ids = CFG.pdfProjects && CFG.pdfProjects.length ? CFG.pdfProjects : [];
+    const picked = (ids.length ? ids.map((id) => projects.find((p) => p.id === id)).filter(Boolean) : engineering).slice(0, 4);
+    const cut = (t, n) => { t = String(t || ''); return t.length > n ? t.slice(0, n - 1).replace(/\s+\S*$/, '') + '…' : t; };
+    const site = CFG.siteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    const certs = certificates.slice(0, 6);
+    return `<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>${esc(name)}: one-page portfolio</title><meta name="robots" content="noindex">
+<style>
+@font-face { font-family: 'Jakarta'; src: url('fonts/plus-jakarta-sans-latin.woff2') format('woff2'); font-weight: 200 800; }
+@font-face { font-family: 'Fraunces'; src: url('fonts/fraunces-latin.woff2') format('woff2'); font-weight: 300 900; }
+@page { size: A4; margin: 0; }
+:root { --s: 1; --ink: #14181f; --muted: #5a6372; --line: #e3e6ec; --accent: #1f5fd1; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { position: relative; width: 210mm; height: 297mm; padding: 12mm 13mm 16mm; font: calc(8.6pt * var(--s))/1.42 'Jakarta', Arial, sans-serif; color: var(--ink); overflow: hidden; }
+h1 { font: 600 calc(23pt * var(--s))/1.05 'Fraunces', Georgia, serif; margin: 0; }
+h2 { font-size: calc(7.4pt * var(--s)); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin: calc(9pt * var(--s)) 0 calc(4pt * var(--s)); }
+a { color: inherit; text-decoration: none; }
+.top { display: flex; gap: 5mm; align-items: center; border-bottom: 1.5px solid var(--ink); padding-bottom: 3.5mm; }
+.top img { width: 22mm; height: 22mm; border-radius: 50%; object-fit: cover; }
+.lead { font-size: calc(11pt * var(--s)); color: var(--muted); margin: 1mm 0 1.5mm; }
+.contact { display: flex; flex-wrap: wrap; gap: 1mm 4mm; font-size: calc(8pt * var(--s)); }
+.summary { margin: 3mm 0 0; color: #2b313c; }
+.projects { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3mm; }
+.proj { display: flex; min-width: 0; gap: 3mm; border: 1px solid var(--line); border-radius: 2.5mm; padding: 2.2mm; }
+.proj img, .proj .ph { flex: none; width: 30mm; height: 21mm; border-radius: 1.5mm; object-fit: cover; background: #e8ecf3; }
+.proj strong { display: block; font-size: calc(9pt * var(--s)); line-height: 1.25; }
+.proj .meta { color: var(--muted); font-size: calc(7.3pt * var(--s)); }
+.proj p { margin: .8mm 0 0; font-size: calc(7.6pt * var(--s)); }
+.proj > span { min-width: 0; }
+.proj .url { color: var(--accent); font-size: calc(7pt * var(--s)); overflow-wrap: anywhere; }
+.cols { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 7mm; }
+.item { margin-bottom: 2.2mm; }
+.item b { display: block; }
+.item .meta { color: var(--muted); font-size: calc(7.6pt * var(--s)); }
+.item ul { margin: .6mm 0 0; padding-left: 4mm; }
+.skills { margin: 0; padding-left: 4mm; }
+.certs { margin: 0; padding-left: 4mm; }
+.foot { position: absolute; left: 13mm; right: 13mm; bottom: 8mm; display: flex; justify-content: space-between; color: var(--muted); font-size: calc(7pt * var(--s)); }
+</style></head>
+<body>
+<header class="top">
+    ${photo ? `<img src="${esc(photo)}" alt="">` : ''}
+    <div>
+        <h1>${esc(name)}</h1>
+        <p class="lead">${esc(headline)} · ${esc(CV.location)}</p>
+        <div class="contact">${contacts.map(([k, href, label]) => `<a href="${esc(href)}">${esc(label)}</a>`).join('')}<a href="${esc(CFG.siteUrl)}">${esc(site)}</a></div>
+    </div>
+</header>
+<p class="summary">${esc(cut(intro, 620))}</p>
+
+<h2>Selected projects</h2>
+<div class="projects">
+${picked.map((p) => { const img = use(small(p.cover)) || use(p.cover); return `    <a class="proj" href="${esc(CFG.siteUrl + 'projects/' + p.id + '.html')}">
+        ${img ? `<img src="${esc(img)}" alt="">` : '<span class="ph"></span>'}
+        <span><strong>${esc(p.title)}</strong><span class="meta">${esc([p.year, p.subtitle].filter(Boolean).join(' · '))}</span>
+        <p>${esc(cut(p.outcome || p.summary, 120))}</p><span class="url">${esc(site + '/projects/' + p.id)}</span></span>
+    </a>`; }).join('\n')}
+</div>
+
+<div class="cols">
+    <section>
+        <h2>Experience</h2>
+${CV.experience.slice(0, 4).map((e) => `        <div class="item"><b>${esc(e.role)}</b><span class="meta">${esc(e.org)} · ${esc(e.dates)}</span>${e.points.length ? `<ul>${e.points.slice(0, 2).map((x) => `<li>${esc(cut(x, 150))}</li>`).join('')}</ul>` : ''}</div>`).join('\n')}
+    </section>
+    <section>
+        <h2>Education</h2>
+${CV.education.slice(0, 2).map((e) => `        <div class="item"><b>${esc(e.title)}</b><span class="meta">${esc(e.org)} · ${esc(e.dates)}</span></div>`).join('\n')}
+        <h2>Skills</h2>
+        <ul class="skills">${CV.skills.slice(0, 7).map((x) => `<li>${esc(x)}</li>`).join('')}</ul>
+        ${certs.length ? `<h2>Certificates &amp; honours</h2>
+        <ul class="certs">${certs.map((c) => `<li>${esc(c.title)}${c.issuer ? ` <span class="meta">(${esc(c.issuer)})</span>` : ''}</li>`).join('')}</ul>` : ''}
+        ${CV.languages ? `<h2>Languages</h2><p style="margin:0">${CV.languages.map(esc).join(' · ')}</p>` : ''}
+    </section>
+</div>
+<div class="foot"><span>Full portfolio, 3D models and CV: ${esc(site)}</span><span>Updated ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span></div>
+</body></html>
+`;
+}
+fs.writeFileSync(path.join(OUT, 'one-page.html'), onePage());
 projects.forEach((p) => fs.writeFileSync(path.join(OUT, 'projects', p.id + '.html'), projectPage(p)));
 fs.mkdirSync(path.join(OUT, 'css'), { recursive: true });
 fs.copyFileSync(path.join(ROOT, 'css/portfolio.css'), path.join(OUT, 'css/portfolio.css'));

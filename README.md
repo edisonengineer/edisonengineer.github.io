@@ -53,6 +53,16 @@ reaches it.
   empty by default because the main site keeps your email hidden).
 - `linkToMainSite`: `true` adds a small footer link to the freelance site.
 
+## One-page PDF
+
+Every build also makes `edison-ochieng-one-page-portfolio.pdf`: one A4 page with
+your contact details, summary, 4 selected projects (with links), experience,
+education, skills, certificates and languages. It is linked from the top of the
+portfolio, ready to attach to applications. Choose the projects with
+`pdfProjects` in `portfolio.config.json` (empty = the first 4 engineering
+projects). If the content gets too long, the text shrinks slightly so it always
+stays on one page.
+
 ## Build it on your computer (optional)
 
 ```bash

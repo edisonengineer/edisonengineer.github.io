@@ -12,6 +12,8 @@
   "categories": ["engineering", "graphic"],
   "excludeProjects": [],
   "excludeCertificates": [],
+  "pdfProjects": [],
+  "_pdfProjects": "Up to 4 project ids for the one-page PDF. Empty = the first 4 engineering projects in projectOrder.",
   "projectOrder": ["designathon-hub", "final-year-project", "kirdi-fabrication", "designathon-2026-hygiene-station", "coffee-machine", "ev-battery-cooling"],
 
   "showGraphicDesignAsSecondary": true,
