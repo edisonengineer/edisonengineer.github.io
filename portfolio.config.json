@@ -18,6 +18,8 @@
 
   "showGraphicDesignAsSecondary": true,
   "linkToMainSite": false,
+  "goatcounter": "",
+  "_goatcounter": "Your GoatCounter code (the part before .goatcounter.com) to count visits. Use the same code as the services site to see both in one place.",
 
   "contact": {
     "email": "edisonochieng24@gmail.com",

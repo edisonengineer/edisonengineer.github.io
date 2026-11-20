@@ -113,6 +113,7 @@ function page({ title, description, body, depth = 0, extraHead = '', url = '', j
     ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(/</g, '\\u003c')}</script>` : ''}
     <link rel="stylesheet" href="${up}css/portfolio.css">
     ${extraHead}
+    ${CFG.goatcounter ? `<script data-goatcounter="https://${esc(CFG.goatcounter)}.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>` : ''}
     ${i18nReady ? `<script defer src="${up}js/i18n.js" data-fr="${up}js/lang-fr.js" data-sw="${up}js/lang-sw.js"></script>` : ''}
 </head>
 <body>
